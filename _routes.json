@@ -1,5 +1,13 @@
 {
   "version": 1,
   "include": ["/*"],
-  "exclude": ["/index.html", "/favicon.ico", "/main.css", "/main.css.map", "/minima-social-icons.svg"]
+  "exclude": [
+    "/index.html",
+    "/favicon.ico",
+    "/main.css",
+    "/main.css.map",
+    "/minima-social-icons.svg",
+    "/BingSiteAuth.xml",
+    "readme.md"
+  ]
 }
