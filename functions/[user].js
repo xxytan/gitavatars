@@ -12,18 +12,38 @@ export async function onRequest(ctx) {
     const raw = isForced ? p.slice(1) : p;
     const isUid = /^\d+$/.test(raw) && !isForced;
 
-    // ========== 用户名：每次都查 GitHub API ==========
+    // ========== 用户名：查询 UID → 302 跳转 ==========
     if (!isUid) {
-      const api = await fetch(`https://api.github.com/users/${raw}`, { headers: h });
-      if (!api.ok) return new Response(api.status === 403 ? 'Rate limited' : `User ${api.status}`, { status: 502 });
-      const { id } = await api.json();
-      // 保留原始查询参数（如 ?size=64）
-      const redirectUrl = `/${id}${u.search}`;
+      const cache = caches.default;
+      // 缓存 Key 固定为用户名，不受查询参数影响
+      const cacheKey = new URL(`https://uid-cache.local/${raw}`).toString();
+      let uid;
+
+      const cached = await cache.match(cacheKey);
+      if (cached) {
+        // 从缓存中读取 UID
+        uid = await cached.text();
+      } else {
+        // 查询 GitHub API
+        const api = await fetch(`https://api.github.com/users/${raw}`, { headers: h });
+        if (!api.ok) return new Response(api.status === 403 ? 'Rate limited' : `User ${api.status}`, { status: 502 });
+        const data = await api.json();
+        uid = data.id.toString();
+
+        // 将 UID 缓存起来，有效期 30 分钟
+        const cachedResponse = new Response(uid, {
+          headers: { 'Cache-Control': 'public, s-maxage=1800' }
+        });
+        ctx.waitUntil(cache.put(cacheKey, cachedResponse.clone()));
+      }
+
+      // 动态生成跳转 URL，保留当前请求的完整查询参数
+      const redirectUrl = `/${uid}${u.search}`;
       return new Response(null, {
         status: 302,
         headers: {
           Location: redirectUrl,
-          'Cache-Control': 'public, s-maxage=1800'   // 仅 302 响应本身缓存 30 分钟（减少 API 调用）
+          'Cache-Control': 'public, s-maxage=1800'
         }
       });
     }
