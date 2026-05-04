@@ -18,7 +18,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","description":"GitHub Avatars mirrored by Cloudflare Pages","headline":"GitAvatars","name":"GitAvatars","url":"https://av.oxue.de/"}</script>
 <!-- End Jekyll SEO tag -->
-<link rel="stylesheet" href="/main.css"><link type="application/atom+xml" rel="alternate" href="https://av.oxue.de/" title="GitAvatars" /></head>
+<link rel="stylesheet" href="/main.css"><link type="application/atom+xml" rel="alternate" href="https://av.oxue.de" title="GitAvatars" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">GitAvatars</a><nav class="site-nav">
@@ -40,7 +40,7 @@
 
 <p>A site fully mirrored <a href="https://avatars.githubusercontent.com/u/">GitHub User Avatars</a> and hosted on <strong>Cloudflare Pages</strong>.</p>
 
-<p>Kinder to users from CN Mainland.</p>
+<p>It’s <em>kinder</em> to users from CN Mainland.</p>
 
 <h1 id="usage">Usage</h1>
 
@@ -49,7 +49,7 @@
 <ol>
   <li>Fetch GitHub User ID by executing the command:
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c"># Replace `&lt;username&gt;` with your GitHub Username</span>
-  curl https://api.github.com/users/&lt;username&gt;
+  curl <span class="nt">-L</span> api.github.com/users/&lt;username&gt;
 </code></pre></div>    </div>
     <p>Then you’ll get the response like:</p>
     <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">  </span><span class="p">{</span><span class="w">
@@ -83,18 +83,21 @@
       <p>e.g. <code class="language-plaintext highlighter-rouge">av.oxue.de/xxytan</code></p>
     </blockquote>
 
-    <p>It’ll be redirected to its UID automatically</p>
+    <p>It’ll be redirected to its UID part automatically</p>
   </li>
 </ul>
 
-<h1 id="others">Others</h1>
+<h1 id="notes">Notes</h1>
 
 <ul>
   <li>
-    <p>There may be some unexpected troubles during your using, email me if do or solve them with AIs.</p>
+    <p>There may be some unexpected troubles during your using, email me if do or solve it with AIs.</p>
   </li>
   <li>
     <p>You could reference it on your website or anywhere else you want.</p>
+  </li>
+  <li>
+    <p>If you’ve just changed your GitHub Avatars and found GitAvatars was still your old one, don’t worry. You have to wait for 30 minutes for its cache expiration and it’ll update.</p>
   </li>
 </ul>
 
