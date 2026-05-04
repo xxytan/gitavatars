@@ -14,8 +14,9 @@ export async function onRequest(ctx) {
 
     if (!isUid) {
       const cache = caches.default;
-      const key = `https://uid:${raw}`;
-      let r = await cache.match(key);
+      // 构造合法的缓存 Key（URL 形式）
+      const cacheKey = new URL(`https://uid-cache.local/${raw}`).toString();
+      let r = await cache.match(cacheKey);
       if (!r) {
         const api = await fetch(`https://api.github.com/users/${raw}`, { headers: h });
         if (!api.ok) return new Response(api.status === 403 ? 'Rate limited' : `User ${api.status}`, { status: 502 });
@@ -24,7 +25,7 @@ export async function onRequest(ctx) {
           status: 302,
           headers: { Location: `/${id}`, 'Cache-Control': 'public, s-maxage=1800' }
         });
-        ctx.waitUntil(cache.put(key, r.clone()));
+        ctx.waitUntil(cache.put(cacheKey, r.clone()));
       }
       return r;
     }
