@@ -1,26 +1,25 @@
 export async function onRequest(ctx) {
   const u = new URL(ctx.request.url);
   const s = u.searchParams.get('size') || u.searchParams.get('s');
-  const pathVal = [].concat(ctx.params.path || [])[0];
-  const p = (pathVal || '').trim();        // 确保 p 是字符串，防止 undefined
+  const p = (ctx.params.user || '').trim();   // 直接从动态路由获取
   if (!p) return new Response('Missing user. Use /123, /torvalds, or /-username', { status: 400 });
 
   const h = { 'User-Agent': 'Cloudflare-Proxy' };
   if (ctx.env.GITHUB_TOKEN) h['Authorization'] = `token ${ctx.env.GITHUB_TOKEN}`;
 
-  const isForcedUser = p.startsWith('-');
+  const isForcedUser = p.startsWith('-');      // 以 - 开头 → 强制用户名
   const rawUser = isForcedUser ? p.slice(1) : p;
   const isUid = /^\d+$/.test(rawUser) && !isForcedUser;
 
-  // 用户名分支
+  // 用户名分支：查 UID → 302 重定向
   if (!isUid) {
     const c = caches.default, k = `https://uid:${rawUser}`;
     let r = await c.match(k);
     if (!r) {
       try {
-        const a = await fetch(`https://api.github.com/users/${rawUser}`, { headers: h });
-        if (!a.ok) return new Response(a.status === 403 ? 'Rate limited' : `User ${a.status}`, { status: 502 });
-        const { id } = await a.json();
+        const api = await fetch(`https://api.github.com/users/${rawUser}`, { headers: h });
+        if (!api.ok) return new Response(api.status === 403 ? 'Rate limited' : `User ${api.status}`, { status: 502 });
+        const { id } = await api.json();
         r = new Response(null, { status: 302, headers: { Location: `/${id}`, 'Cache-Control': 'public, s-maxage=1800' } });
         ctx.waitUntil(c.put(k, r.clone()));
       } catch (e) {
@@ -30,7 +29,7 @@ export async function onRequest(ctx) {
     return r;
   }
 
-  // UID 分支
+  // UID 分支：返回头像
   try {
     const img = await fetch(`https://avatars.githubusercontent.com/u/${rawUser}${s ? `?s=${s}` : ''}`, {
       headers: h,
