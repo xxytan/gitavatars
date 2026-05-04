@@ -2,7 +2,6 @@ export async function onRequest(context) {
   const user = context.params.user;
   if (!user) return new Response('Missing user ID or username', { status: 400 });
 
-  // 准备 API 请求头（可选 GITHUB_TOKEN）
   const apiHeaders = { 'User-Agent': 'Cloudflare-Proxy' };
   if (context.env.GITHUB_TOKEN) {
     apiHeaders['Authorization'] = `token ${context.env.GITHUB_TOKEN}`;
@@ -10,20 +9,35 @@ export async function onRequest(context) {
 
   const isNumeric = /^\d+$/.test(user);
 
-  // === 用户名：查询 UID 并重定向 ===
+  // === 用户名：查 UID，带缓存 ===
   if (!isNumeric) {
-    try {
-      const apiRes = await fetch(`https://api.github.com/users/${user}`, { headers: apiHeaders });
-      if (!apiRes.ok) return new Response(`GitHub user not found (${apiRes.status})`, { status: 502 });
-      const { id } = await apiRes.json();
-      const url = new URL(context.request.url);
-      return Response.redirect(`${url.origin}/${id}`, 302);
-    } catch (e) {
-      return new Response(`Error: ${e.message}`, { status: 500 });
+    const cache = caches.default;
+    const cacheKey = `https://uid-cache/${user}`;  // 虚构一个缓存键
+    let response = await cache.match(cacheKey);
+
+    if (!response) {
+      try {
+        const apiRes = await fetch(`https://api.github.com/users/${user}`, { headers: apiHeaders });
+        if (!apiRes.ok) {
+          // 403 时特别提示
+          if (apiRes.status === 403) {
+            return new Response('GitHub API rate limit exceeded. Add GITHUB_TOKEN or wait.', { status: 502 });
+          }
+          return new Response(`GitHub user not found (${apiRes.status})`, { status: 502 });
+        }
+        const { id } = await apiRes.json();
+        response = Response.redirect(new URL(`/${id}`, context.request.url).toString(), 302);
+        // 设置缓存，这里的 s-maxage 控制边缘节点缓存多久（建议24小时）
+        response.headers.set('Cache-Control', 'public, s-maxage=1800');
+        context.waitUntil(cache.put(cacheKey, response.clone()));
+      } catch (e) {
+        return new Response(`Error: ${e.message}`, { status: 500 });
+      }
     }
+    return response;
   }
 
-  // === UID：直接返回头像 ===
+  // === UID：直接返回头像（与之前相同） ===
   try {
     const imgRes = await fetch(`https://avatars.githubusercontent.com/u/${user}`, {
       headers: { 'User-Agent': 'Cloudflare-Proxy' },
