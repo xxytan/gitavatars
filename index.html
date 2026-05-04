@@ -101,6 +101,43 @@
   </li>
 </ul>
 
+<h1 id="examples">Examples</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>RequestedURL</th>
+      <th>RedirectedURL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;uid&gt;</code></td>
+      <td><em>no change</em></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;username&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;uid&gt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/-&lt;username&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;uid&gt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;digits-only-username&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;digits-same-uid&gt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/-&lt;digits-only-username&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;uid&gt;</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/~&lt;parameters&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">av.oxue.de/&lt;uid&gt;&lt;parameters&gt;</code></td>
+    </tr>
+  </tbody>
+</table>
+
 <h1 id="notes">Notes</h1>
 
 <ul>
