@@ -48,7 +48,7 @@
 
 <ol>
   <li>Fetch GitHub User ID by executing the command:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c"># Replace `&lt;username&gt;` with your GitHub Username</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c"># Replace &lt;username&gt; with your GitHub Username</span>
   curl <span class="nt">-L</span> api.github.com/users/&lt;username&gt;
 </code></pre></div>    </div>
     <p>Then you’ll get the response like:</p>
@@ -73,17 +73,31 @@
   </li>
 </ol>
 
-<h2 id="via-username-recommended">Via <em>Username</em> (Recommended)</h2>
+<h2 id="via-username">Via <em>Username</em></h2>
+
+<p>Both of following methods will be redirected to its UID part automatically</p>
+
+<h3 id="1st-method">1st method</h3>
 
 <ul>
-  <li>Replace <code class="language-plaintext highlighter-rouge">&lt;username&gt;</code> with your GitHub <em>username</em>:
+  <li>Replace <code class="language-plaintext highlighter-rouge">&lt;username&gt;</code> with your GitHub <em>Username</em>:
     <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>av.oxue.de/&lt;username&gt;
 </code></pre></div>    </div>
     <blockquote>
       <p>e.g. <code class="language-plaintext highlighter-rouge">av.oxue.de/xxytan</code></p>
     </blockquote>
+  </li>
+</ul>
 
-    <p>It’ll be redirected to its UID part automatically</p>
+<h3 id="2nd-method">2nd method</h3>
+
+<ul>
+  <li>Replace <code class="language-plaintext highlighter-rouge">&lt;username&gt;</code> with your GitHub <em>Username</em>:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>av.oxue.de?u=&lt;username&gt;
+</code></pre></div>    </div>
+    <blockquote>
+      <p>e.g. <code class="language-plaintext highlighter-rouge">av.oxue.de?u=xxytan</code></p>
+    </blockquote>
   </li>
 </ul>
 
@@ -91,13 +105,16 @@
 
 <ul>
   <li>
+    <p><a href="#2nd-method">2nd method</a> is specifically for GitHub users with usernames that are only digits.</p>
+  </li>
+  <li>
     <p>There may be some unexpected troubles during your using, email me if do or solve it with AIs.</p>
   </li>
   <li>
     <p>You could reference it on your website or anywhere else you want.</p>
   </li>
   <li>
-    <p>If you’ve just changed your GitHub Avatars and found GitAvatars was still your old one, don’t worry. You have to wait for 30 minutes for its cache expiration and it’ll update.</p>
+    <p>If you’ve just changed your GitHub Avatars and found GitAvatars was still your old one, don’t worry. You have to wait for least 30 minutes for its cache expiration and it’ll update.</p>
   </li>
 </ul>
 
