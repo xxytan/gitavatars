@@ -1,17 +1,26 @@
 export async function onRequest(context) {
-  const user = context.params.user;
-  if (!user) return new Response('Missing user ID or username', { status: 400 });
+  const requestUrl = new URL(context.request.url);
+  const queryUser = requestUrl.searchParams.get('u');
+
+  // 优先使用 ?u=用户名，否则使用路径参数
+  const user = queryUser || context.params.user;
+  if (!user) {
+    return new Response('Missing user ID or username. Use /123 or /username or ?u=username', { status: 400 });
+  }
 
   const apiHeaders = { 'User-Agent': 'Cloudflare-Proxy' };
   if (context.env.GITHUB_TOKEN) {
     apiHeaders['Authorization'] = `token ${context.env.GITHUB_TOKEN}`;
   }
 
+  const forceUsername = !!queryUser;
   const isNumeric = /^\d+$/.test(user);
+  const isUid = isNumeric && !forceUsername; // 仅当无 ?u 且路径为纯数字时当作 UID
 
-  if (!isNumeric) {
+  // ==================== 用户名：查询 UID 并 302 跳转 ====================
+  if (forceUsername || !isUid) {
     const cache = caches.default;
-    const cacheKey = `https://uid-cache/${user}`;
+    const cacheKey = `https://uid-cache/u:${user}`;
     let response = await cache.match(cacheKey);
 
     if (!response) {
@@ -23,15 +32,16 @@ export async function onRequest(context) {
           }
           return new Response(`GitHub user not found (${apiRes.status})`, { status: 502 });
         }
-        const { id } = await apiRes.json();
-        const redirectUrl = new URL(`/${id}`, context.request.url).toString();
 
-        // 手动构造 302 响应，一并写入缓存头，避免修改 immutable headers
+        const { id } = await apiRes.json();
+        const redirectUrl = new URL(`/${id}`, requestUrl.origin).toString();
+
+        // 302 重定向，缓存 30 分钟
         response = new Response(null, {
           status: 302,
           headers: {
-            'Location': redirectUrl,
-            'Cache-Control': 'public, s-maxage=86400'
+            Location: redirectUrl,
+            'Cache-Control': 'public, s-maxage=1800'
           }
         });
 
@@ -43,7 +53,7 @@ export async function onRequest(context) {
     return response;
   }
 
-  // UID：返回头像
+  // ==================== UID：返回头像 ====================
   try {
     const imgRes = await fetch(`https://avatars.githubusercontent.com/u/${user}`, {
       headers: { 'User-Agent': 'Cloudflare-Proxy' },
@@ -58,14 +68,14 @@ export async function onRequest(context) {
       return new Response('Not an image', { status: 502 });
     }
 
-    // 同样用构造方式，避免修改原 headers
     const headers = new Headers(imgRes.headers);
-    headers.set('Cache-Control', 'public, max-age=43200, s-maxage=43200');
+    // 头像缓存 30 分钟
+    headers.set('Cache-Control', 'public, max-age=1800, s-maxage=1800');
 
     return new Response(imgRes.body, {
       status: imgRes.status,
       statusText: imgRes.statusText,
-      headers
+      headers,
     });
   } catch (e) {
     return new Response(`Error: ${e.message}`, { status: 500 });
