@@ -5,42 +5,75 @@ export default {
       const path = url.pathname.replace(/^\/+|\/+$/g, '');
       const userParam = path.split('/')[0]?.trim();
 
-      // ====== 1. 静态首页 ======
+      // ----- index -----
       if (!userParam) {
-        // 把你的 index.html 内容直接粘贴在这个模板字符串里
         const html = `<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>GitAvatars</title>
+  <style>
+    html {
+      color-scheme: light dark;
+    }
+    body {
+      width: 40em;
+      margin: 0 auto;
+      padding-top: 65px;
+    }
+  </style>
 </head>
 <body>
   <h1>GitAvatars</h1>
   <p>
     A site fully mirrored <a href="https://avatars.githubusercontent.com/u" target="_blank">GitHub User Avatar</a>.<br>
-    Kinder to users from CN Mainland.
   </p>
+  <hr>
   <h2>Usage</h2>
   <p>
     Request:
     <ol>
       <li><code>/&lt;uid></code></li>
-      <li><code>&lt;username></code></li>
+      <li><code>/&lt;username></code></li>
       <li><code>/-&lt;username></code></li>
     </ol>
-    <i>
-      Replace <code>&lt;uid></code> with your <mark>GitHub user ID</mark> &amp; <code>&lt;username></code> with your <mark>GitHub username</mark>.<br>
-      If your username is only digits, please use the <strong>3rd method</strong>.
-    </i>
+    or with parameters:
+    <p>
+      <li><code>/&lt;uid>&lt;parameter></code></li>
+      <li>…</li>
+    </p>
+    <table>
+      <tr>
+        <th>Variable</th>
+        <th>Value</th>
+        <th>Example</th>
+      </tr>
+      <tr>
+        <td><code>&lt;uid></code></td>
+        <td>GitHub User ID</td>
+        <td><code>155360005</code></td>
+      </tr>
+      <tr>
+        <td><code>&lt;username></code></td>
+        <td>GitHub Username</td>
+        <td><code>xxytan</code></td>
+      </tr>
+      <tr>
+        <td><code>&lt;parameter></code></td>
+        <td>just parameters</td>
+        <td><code>?s=128</code>
+      </tr>
+    </table>
+    </span>
   </p>
   <h2>Final Redirected URL</h2>
   <p>
-    <code>/&lt;uid></code> or <code>/&lt;uid>&lt;parameters></code>
+    <code>/&lt;uid></code> or <code>/&lt;uid>&lt;parameters></code><br>
   </p>
-  <h2>Notice</h2>
+  <h2>Note</h2>
   <p>
     <li>Cache expiration is 30 minutes.</li>
     <li>You could get your user ID by executing <code>curl -L api.github.com/users/&lt;username></code> .</li>
+    <li>If GitHub Username is only digits, use the <strong>Request.3</strong>.</li>
   </p>
 </body>
 </html>`;
@@ -51,7 +84,7 @@ export default {
 
       const size = url.searchParams.get('size') || url.searchParams.get('s');
 
-      // ----- 多 Token -----
+      // ----- multi token -----
       const rawTokens = env.GITHUB_TOKENS || env.GITHUB_TOKEN || '';
       const tokens = rawTokens.split(',').map(t => t.trim()).filter(Boolean);
       const baseHeaders = { 'User-Agent': 'Cloudflare-Worker' };
@@ -72,7 +105,7 @@ export default {
       const raw = isForced ? userParam.slice(1) : userParam;
       const isUid = /^\d+$/.test(raw) && !isForced;
 
-      // ----- 2. 用户名 → 302 跳转 -----
+      // ----- username → uid -----
       if (!isUid) {
         const cache = caches.default;
         const cacheKey = `https://uid-cache.local/${raw}`;
@@ -108,7 +141,7 @@ export default {
         });
       }
 
-      // ----- 3. UID → 返回头像 -----
+      // ----- return image -----
       const imgUrl = `https://avatars.githubusercontent.com/u/${raw}${size ? `?s=${size}` : ''}`;
       const img = await fetch(imgUrl, { headers: baseHeaders, redirect: 'manual' });
       if (img.status !== 200 && img.status !== 304) {
